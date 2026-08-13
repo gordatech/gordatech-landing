@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Play, ChevronRight, Check, CheckCircle2, ShieldCheck, Zap, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import TiltCard from '@/components/TiltCard';
+import TiltCard from '@/components/widgets/TiltCard';
 
 interface HeroProps {
   title?: string;

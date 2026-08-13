@@ -3,7 +3,7 @@
 import React from 'react';
 import { Star, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
-import TiltCard from '@/components/TiltCard';
+import TiltCard from '@/components/widgets/TiltCard';
 
 const FALLBACK_TESTIMONIALS = [
   {

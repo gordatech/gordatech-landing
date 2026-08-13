@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import TiltCard from "@/components/TiltCard";
+import TiltCard from "@/components/widgets/TiltCard";
 
 interface Portfolio {
   id: number;

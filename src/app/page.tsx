@@ -1,13 +1,13 @@
 import React from "react";
-import Hero from "@/components/Sections/Hero";
-import HowWeWorkSection from "@/components/Sections/HowWeWorkSection";
-import ServicesSection from "@/components/Sections/ServicesSection";
-import FeaturedPortfoliosSection from "@/components/Sections/FeaturedPortfoliosSection";
-import FaqSection from "@/components/Sections/FaqSection";
-import FinalCtaSection from "@/components/Sections/FinalCtaSection";
-import TestimonialsSection from "@/components/Sections/TestimonialsSection";
-import IdealClientsSection from "@/components/Sections/IdealClientsSection";
-import TrustGuaranteesSection from "@/components/Sections/TrustGuaranteesSection";
+import Hero from "@/components/sections/Hero";
+import HowWeWorkSection from "@/components/sections/HowWeWorkSection";
+import ServicesSection from "@/components/sections/ServicesSection";
+import FeaturedPortfoliosSection from "@/components/sections/FeaturedPortfoliosSection";
+import FaqSection from "@/components/sections/FaqSection";
+import FinalCtaSection from "@/components/sections/FinalCtaSection";
+import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import IdealClientsSection from "@/components/sections/IdealClientsSection";
+import TrustGuaranteesSection from "@/components/sections/TrustGuaranteesSection";
 import { fetchLandingPage, fetchServices, fetchPortfolios, fetchFAQs } from "@/lib/api";
 
 

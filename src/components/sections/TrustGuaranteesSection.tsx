@@ -4,7 +4,7 @@ import React from 'react';
 import { ShieldCheck, Zap, Key, LifeBuoy, Check, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import TiltCard from '@/components/TiltCard';
+import TiltCard from '@/components/widgets/TiltCard';
 
 interface TrustGuaranteesSectionProps { settings?: any; }
 

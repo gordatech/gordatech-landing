@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Users, TrendingUp, Globe, Layout, Cpu, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
-import TiltCard from "@/components/TiltCard";
+import TiltCard from "@/components/widgets/TiltCard";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Users, TrendingUp, Globe, Layout, Cpu, ShieldCheck,

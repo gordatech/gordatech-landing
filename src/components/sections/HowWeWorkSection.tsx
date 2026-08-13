@@ -3,7 +3,7 @@
 import React from "react";
 import { Search, FileText, Layers, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
-import TiltCard from "@/components/TiltCard";
+import TiltCard from "@/components/widgets/TiltCard";
 
 const STEPS = [
   { icon: Search,     num: "01", color: "#42b2bf" },

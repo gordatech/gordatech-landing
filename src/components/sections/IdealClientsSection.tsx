@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Store, Rocket, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import TiltCard from '@/components/TiltCard';
+import TiltCard from '@/components/widgets/TiltCard';
 
 interface IdealClientsSectionProps { settings?: any; }
 

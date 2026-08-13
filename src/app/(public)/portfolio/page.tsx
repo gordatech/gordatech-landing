@@ -1,5 +1,5 @@
 import React from "react";
-import PortfolioGrid from "@/components/Sections/PortfolioGrid";
+import PortfolioGrid from "@/components/sections/PortfolioGrid";
 import { fetchPortfolios } from "@/lib/api";
 import { Metadata } from "next";
 

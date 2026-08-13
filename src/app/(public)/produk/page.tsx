@@ -2,7 +2,7 @@ import React from "react";
 import { ShoppingBag, Cpu, Users, Truck, CheckCircle2, MessageSquare, Globe, Briefcase } from "lucide-react";
 import { fetchProducts } from "@/lib/api";
 import { Metadata } from "next";
-import ProductListClient from "@/components/ProductListClient";
+import ProductListClient from "@/components/product/ProductListClient";
 
 export const metadata: Metadata = {
   title: "Produk Aplikasi",

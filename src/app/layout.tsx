@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Sections/Navbar";
-import Footer from "@/components/Sections/Footer";
-import ScrollToTop from "@/components/ScrollToTop";
-import AIChatbot from "@/components/AIChatbot";
+import Navbar from "@/components/sections/Navbar";
+import Footer from "@/components/sections/Footer";
+import ScrollToTop from "@/components/widgets/ScrollToTop";
+import AIChatbot from "@/components/widgets/AIChatbot";
 
 const inter = Inter({
   subsets: ["latin"],
