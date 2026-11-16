@@ -19,14 +19,22 @@ export class NotFound extends Error {}
 const lastGood = new Map<string, unknown>();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * Saat `next build` (mis. di Vercel), koneksi ke hosting API bisa diputus sesaat (ECONNRESET, rate limit/firewall).
+ * Satu fetch gagal = seluruh build gagal, jadi saat build kita mencoba lebih sabar; saat runtime tetap cepat.
+ */
+const IS_BUILD = process.env.NEXT_PHASE === 'phase-production-build';
+const BACKOFF_MS = IS_BUILD ? [1000, 2000, 4000, 8000, 12000] : [400, 1200];
+
 async function get<T>(path: string, tags: string[]): Promise<T> {
   let lastError: unknown;
-  // 3 percobaan (jeda 0,4 dtk lalu 1,2 dtk) untuk error jaringan, timeout, dan HTTP 5xx/429.
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (attempt) await sleep(attempt === 1 ? 400 : 1200);
+  // Percobaan ulang untuk error jaringan, timeout, dan HTTP 5xx/429 (jeda + sedikit acak agar tidak serempak).
+  for (let attempt = 0; attempt <= BACKOFF_MS.length; attempt++) {
+    if (attempt) await sleep(BACKOFF_MS[attempt - 1] + Math.floor(Math.random() * 300));
     try {
       const res = await fetch(BASE + path, {
-        headers: { 'X-Api-Key': KEY, Accept: 'application/json' },
+        // User-Agent eksplisit: sebagian firewall hosting (ModSecurity/Imunify) memblokir UA bawaan Node.
+        headers: { 'X-Api-Key': KEY, Accept: 'application/json', 'User-Agent': 'GordaTech-Web/1.0 (Next.js)' },
         next: { revalidate: REVALIDATE, tags: ['all', ...tags] },
         signal: AbortSignal.timeout(20_000),
       });

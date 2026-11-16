@@ -6,6 +6,12 @@ const isLocalApi = ['localhost', '127.0.0.1'].includes(api.hostname);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Build mengambil data dari API Laravel: ulangi halaman yang gagal prerender (mis. ECONNRESET sesaat)
+    // dan batasi paralelisme agar hosting API tidak kebanjiran koneksi sekaligus.
+    staticGenerationRetryCount: 3,
+    staticGenerationMaxConcurrency: 2,
+  },
   images: {
     remotePatterns: [{ protocol: api.protocol.replace(':', '') as 'http' | 'https', hostname: api.hostname, port: api.port, pathname: '/storage/**' }],
     formats: ['image/avif', 'image/webp'],
