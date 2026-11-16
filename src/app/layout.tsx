@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Inter_Tight, Montserrat } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -12,10 +12,32 @@ import { getFaqs, getServices, getSite } from '@/lib/api';
 import { orgSchema } from '@/lib/seo';
 import { SITE_URL, contentOf, setting, waLink } from '@/lib/site';
 
-const display = Inter_Tight({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-inter-tight', display: 'swap' });
-const sans = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+/** Font di-self-host dari paket @fontsource (tanpa fetch Google Fonts saat build, jadi build tidak gagal bila Google Fonts bermasalah). */
+const display = localFont({
+  src: [
+    { path: '../../node_modules/@fontsource/inter-tight/files/inter-tight-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: '../../node_modules/@fontsource/inter-tight/files/inter-tight-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: '../../node_modules/@fontsource/inter-tight/files/inter-tight-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-inter-tight',
+  display: 'swap',
+});
+const sans = localFont({
+  src: [
+    { path: '../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: '../../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: '../../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: '../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-inter',
+  display: 'swap',
+});
 /** Wordmark GORDATECH: Gotham Bold (berlisensi) bila tersedia, Montserrat Bold sebagai pengganti terdekat. */
-const brand = Montserrat({ subsets: ['latin'], weight: ['700'], variable: '--font-montserrat', display: 'swap' });
+const brand = localFont({
+  src: [{ path: '../../node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2', weight: '700', style: 'normal' }],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
 
 export const viewport: Viewport = { themeColor: '#ffffff', width: 'device-width', initialScale: 1 };
 
