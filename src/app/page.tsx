@@ -1,64 +1,46 @@
-import React from "react";
-import Hero from "@/components/sections/Hero";
-import HowWeWorkSection from "@/components/sections/HowWeWorkSection";
-import ServicesSection from "@/components/sections/ServicesSection";
-import FeaturedPortfoliosSection from "@/components/sections/FeaturedPortfoliosSection";
-import FaqSection from "@/components/sections/FaqSection";
-import FinalCtaSection from "@/components/sections/FinalCtaSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import IdealClientsSection from "@/components/sections/IdealClientsSection";
-import TrustGuaranteesSection from "@/components/sections/TrustGuaranteesSection";
-import { fetchLandingPage, fetchServices, fetchPortfolios, fetchFAQs } from "@/lib/api";
+import type { Metadata } from 'next';
+import Hero from '@/components/home/Hero';
+import ServicesList from '@/components/home/ServicesList';
+import MarketplaceSpotlight from '@/components/home/MarketplaceSpotlight';
+import FeaturedCases from '@/components/home/FeaturedCases';
+import Process from '@/components/home/Process';
+import Guarantees from '@/components/home/Guarantees';
+import IdealClients from '@/components/home/IdealClients';
+import Testimonials from '@/components/home/Testimonials';
+import LatestInsights from '@/components/home/LatestInsights';
+import HomeFaq from '@/components/home/HomeFaq';
+import CtaBand from '@/components/ui/CtaBand';
+import { getFaqs, getInsights, getPortfolios, getServices, getSite, getTestimonials } from '@/lib/api';
+import { contentOf } from '@/lib/site';
+import { pageMeta } from '@/lib/seo';
 
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  const c = contentOf(site);
+  return pageMeta(site, { title: c.t('seo.home_title'), description: c.t('seo.home_description'), path: '/', absoluteTitle: true, image: c.img('seo.og_image') });
+}
 
+/** Alur beranda: hero → layanan → sorotan Marketplace Ads → karya & angka → cara kerja → alasan → untuk siapa → testimoni → insight → FAQ → CTA. */
 export default async function HomePage() {
-  const settings = await fetchLandingPage();
-  const services = await fetchServices();
-  const portfolios = await fetchPortfolios();
-  const faqs = await fetchFAQs();
-
-  // Pick customized texts or default fallback
-  const heroTitle = settings.hero_title || "Solusi Digital Lengkap Untuk Bisnis Anda.";
-  const heroDesc = settings.hero_desc || "GordaTech membantu transformasi digital bisnis Anda dengan solusi kustom berkelas dunia. Dari web platform hingga otomatisasi AI.";
-  const heroTagline = settings.hero_tagline || "Your Trusted Digital Partner";
-  const heroRotatingWords = settings.hero_rotating_words || "Brands., Products., Revenue., Growth.";
+  const [site, services, portfolios, testimonials, insights, faqs] = await Promise.all([
+    getSite(), getServices(), getPortfolios(), getTestimonials(true), getInsights('?per_page=3'), getFaqs('?service=global&home=1'),
+  ]);
+  const c = contentOf(site);
+  const cases = [...portfolios.filter((p) => p.is_featured), ...portfolios.filter((p) => !p.is_featured)].slice(0, 6);
 
   return (
-    <div className="relative">
-      {/* 1. Hero Section + Interactive Configurator */}
-      <Hero 
-        title={heroTitle} 
-        desc={heroDesc} 
-        tagline={heroTagline} 
-        rotatingWords={heroRotatingWords} 
-        portfolios={portfolios} 
-      />
-
-      {/* 2. Workflow Steps */}
-      <HowWeWorkSection settings={settings} />
-
-      {/* 4. Service Previews */}
-      <ServicesSection services={services} />
-
-      {/* Klien Ideal Kami */}
-      <IdealClientsSection settings={settings} />
-
-      {/* Trust Guarantees Showcase */}
-      <TrustGuaranteesSection settings={settings} />
-
-      {/* Featured Portfolios Section */}
-      <FeaturedPortfoliosSection portfolios={portfolios} />
-
-
-
-      {/* Client Testimonials reviews */}
-      <TestimonialsSection portfolios={portfolios} />
-
-      {/* Accordion FAQ questions */}
-      <FaqSection faqs={faqs} />
-
-      {/* Closing conversion Final CTA banner */}
-      <FinalCtaSection />
-    </div>
+    <>
+      <Hero site={site} portfolios={portfolios} />
+      <ServicesList c={c} site={site} services={services} />
+      <MarketplaceSpotlight c={c} site={site} />
+      <FeaturedCases c={c} site={site} portfolios={cases} />
+      <Process c={c} />
+      <Guarantees c={c} />
+      <IdealClients c={c} site={site} />
+      <Testimonials c={c} items={testimonials} />
+      <LatestInsights c={c} items={insights.data} />
+      <HomeFaq c={c} site={site} faqs={faqs} />
+      <CtaBand site={site} />
+    </>
   );
 }

@@ -1,225 +1,114 @@
-import fs from "fs";
-import path from "path";
+import 'server-only';
+import { cache } from 'react';
+import type {
+  Category, Faq, Insight, LocalPage, Paginated, Portfolio, Product, Scheme, Service, SiteData, SitemapData, Testimonial, Author,
+} from './types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+/**
+ * Klien GordaTech API v1 (admin-panel/api-docs.md). Hanya berjalan di server: API key tidak pernah sampai ke browser.
+ * Setiap fetch diberi tag cache; Laravel memanggil /api/revalidate dengan tag yang sama saat admin menyimpan data.
+ */
+const BASE = (process.env.GORDATECH_API_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
+const KEY = process.env.GORDATECH_API_KEY || '';
+// Produksi: cache 1 jam + webhook revalidate dari admin. Dev lokal: tanpa cache agar perubahan admin langsung terlihat.
+const REVALIDATE = process.env.NODE_ENV === 'development' ? 0 : 3600;
 
-function sanitizeUrls(data: any): any {
-  if (!data) return data;
-  if (typeof data === "string") {
-    // Clean absolute URLs pointing to uploads directory into relative URLs
-    return data.replace(/^https?:\/\/[^\/]+\/uploads\//, "/uploads/");
-  }
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeUrls(item));
-  }
-  if (typeof data === "object") {
-    const cleaned: any = {};
-    for (const key in data) {
-      cleaned[key] = sanitizeUrls(data[key]);
+export class NotFound extends Error {}
+
+/** Respons terakhir yang berhasil per path: dipakai bila API sesaat gagal (server baru menyala, restart, MySQL belum siap). */
+const lastGood = new Map<string, unknown>();
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function get<T>(path: string, tags: string[]): Promise<T> {
+  let lastError: unknown;
+  // 3 percobaan (jeda 0,4 dtk lalu 1,2 dtk) untuk error jaringan, timeout, dan HTTP 5xx/429.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await sleep(attempt === 1 ? 400 : 1200);
+    try {
+      const res = await fetch(BASE + path, {
+        headers: { 'X-Api-Key': KEY, Accept: 'application/json' },
+        next: { revalidate: REVALIDATE, tags: ['all', ...tags] },
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (res.status === 404) throw new NotFound(path);
+      if (res.status >= 500 || res.status === 429) {
+        lastError = new Error(`GordaTech API ${path} → HTTP ${res.status}`);
+        continue;
+      }
+      if (!res.ok) throw new Error(`GordaTech API ${path} → HTTP ${res.status}`);
+      const json = (await res.json()) as T;
+      lastGood.set(path, json);
+      return json;
+    } catch (e) {
+      if (e instanceof NotFound) throw e;
+      if (e instanceof Error && /HTTP 4\d\d/.test(e.message) && !/HTTP 429/.test(e.message)) throw e;
+      lastError = e;
     }
-    return cleaned;
   }
-  return data;
+  if (lastGood.has(path)) {
+    console.warn(`[api] ${path} gagal, memakai data terakhir yang berhasil:`, lastError instanceof Error ? lastError.message : lastError);
+    return lastGood.get(path) as T;
+  }
+  throw lastError instanceof Error ? lastError : new Error(`GordaTech API ${path} gagal`);
 }
 
-// Read directly from db.json if available to bypass the API server during build time
-function getLocalDbData(key: string): any {
+/** null bila 404 (untuk halaman detail → notFound / redirect). */
+async function maybe<T>(p: Promise<T>): Promise<T | null> {
   try {
-    const dbPath = path.join(process.cwd(), "..", "admin-panel", "data", "db.json");
-    if (fs.existsSync(dbPath)) {
-      const fileContent = fs.readFileSync(dbPath, "utf-8");
-      const db = JSON.parse(fileContent);
-      return db[key] || null;
-    }
-  } catch (error) {
-    console.error(`Error reading local db.json for key ${key}:`, error);
-  }
-  return null;
-}
-
-export async function fetchLandingPage() {
-  const localData = getLocalDbData("landing_settings");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/landing-page`, { cache: "no-store" });
-    if (!res.ok) return {};
-    const json = await res.json();
-    return sanitizeUrls(json.data || {});
-  } catch (error) {
-    console.error("Error fetching landing page:", error);
-    return {};
+    return await p;
+  } catch (e) {
+    if (e instanceof NotFound) return null;
+    throw e;
   }
 }
 
-export async function fetchServices() {
-  const localData = getLocalDbData("services");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
+const enc = encodeURIComponent;
 
+export const getSite = cache(() => get<{ data: SiteData }>('/site', ['site']).then((r) => r.data));
+export const getSitemap = () => get<{ data: SitemapData }>('/sitemap', ['services', 'portfolios', 'products', 'insights', 'local-pages']).then((r) => r.data);
+export const getRedirects = cache(() => get<{ data: { from: string; to: string; status: number }[] }>('/redirects', ['redirects']).then((r) => r.data));
+
+export const getServices = cache(() => get<{ data: Service[] }>('/services', ['services']).then((r) => r.data));
+export const getService = cache((slug: string) => maybe(get<{ data: Service }>(`/services/${enc(slug)}`, ['services']).then((r) => r.data)));
+
+export const getPortfolios = cache((query = '') => get<{ data: Portfolio[] }>(`/portfolios${query}`, ['portfolios']).then((r) => r.data));
+export const getPortfolio = cache((slug: string) =>
+  maybe(get<{ data: Portfolio; meta: { related: Portfolio[] } }>(`/portfolios/${enc(slug)}`, ['portfolios'])));
+
+export const getTestimonials = cache((home = false) => get<{ data: Testimonial[] }>(`/testimonials${home ? '?home=1' : ''}`, ['testimonials']).then((r) => r.data));
+
+export const getInsights = cache((query = '') => get<Paginated<Insight>>(`/insights${query}`, ['insights']));
+export const getInsight = cache((slug: string) => maybe(get<{ data: Insight; meta: { related: Insight[] } }>(`/insights/${enc(slug)}`, ['insights'])));
+export const getCategories = cache(() => get<{ data: Category[] }>('/insight-categories', ['insights']).then((r) => r.data));
+export const getAuthor = cache((slug: string) => maybe(get<{ data: Author }>(`/authors/${enc(slug)}`, ['insights']).then((r) => r.data)));
+
+export const getFaqs = cache((query = '') => get<{ data: Faq[] }>(`/faqs${query}`, ['faqs']).then((r) => r.data));
+export const getProducts = cache(() => get<{ data: Product[] }>('/products', ['products']).then((r) => r.data));
+export const getProduct = cache((slug: string) => maybe(get<{ data: Product }>(`/products/${enc(slug)}`, ['products']).then((r) => r.data)));
+export const getSchemes = cache(() => get<{ data: Scheme[] }>('/cooperation-schemes', ['schemes']).then((r) => r.data));
+export const getLocalPages = cache(() => get<{ data: LocalPage[] }>('/local-pages', ['local-pages']).then((r) => r.data));
+export const getLocalPage = cache((slug: string) => maybe(get<{ data: LocalPage }>(`/local-pages/${enc(slug)}`, ['local-pages']).then((r) => r.data)));
+
+/** Untuk generateStaticParams: kegagalan API saat build tidak menggagalkan build (halaman dibuat saat diakses). */
+export async function safeParams<T>(fn: () => Promise<T[]>, map: (x: T) => Record<string, string>) {
   try {
-    const res = await fetch(`${BASE_URL}/services`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return sanitizeUrls(json.data || []);
-  } catch (error) {
-    console.error("Error fetching services:", error);
+    return (await fn()).map(map);
+  } catch {
     return [];
   }
 }
 
-export async function fetchPortfolios(category?: string, isFeatured?: boolean) {
-  const localData = getLocalDbData("portfolios");
-  if (localData) {
-    let list = localData;
-    if (category) {
-      list = list.filter((item: any) => item.category === category);
-    }
-    if (isFeatured !== undefined) {
-      list = list.filter((item: any) => item.is_featured === isFeatured);
-    }
-    return sanitizeUrls(list);
-  }
-
-  try {
-    let url = `${BASE_URL}/portfolios`;
-    const params = new URLSearchParams();
-    if (category) params.append("category", category);
-    if (isFeatured !== undefined) params.append("is_featured", String(isFeatured));
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return sanitizeUrls(json.data || []);
-  } catch (error) {
-    console.error("Error fetching portfolios:", error);
-    return [];
-  }
-}
-
-export async function fetchPortfolioDetail(slug: string) {
-  const localData = getLocalDbData("portfolios");
-  if (localData) {
-    const item = localData.find((p: any) => p.slug === slug);
-    return item ? sanitizeUrls(item) : null;
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/portfolios/${slug}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return sanitizeUrls(json.data || null);
-  } catch (error) {
-    console.error("Error fetching portfolio detail:", error);
-    return null;
-  }
-}
-
-
-export async function fetchProducts() {
-  const localData = getLocalDbData("products");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/products`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return sanitizeUrls(json.data || []);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
-  }
-}
-
-export async function fetchInsights() {
-  const localData = getLocalDbData("insights");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/insights`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return sanitizeUrls(json.data || []);
-  } catch (error) {
-    console.error("Error fetching insights:", error);
-    return [];
-  }
-}
-
-export async function fetchInsightDetail(slug: string) {
-  const localData = getLocalDbData("insights");
-  if (localData) {
-    const item = localData.find((ins: any) => ins.slug === slug);
-    return item ? sanitizeUrls(item) : null;
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/insights/${slug}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return sanitizeUrls(json.data || null);
-  } catch (error) {
-    console.error("Error fetching insight detail:", error);
-    return null;
-  }
-}
-
-export async function fetchFAQs() {
-  const localData = getLocalDbData("faqs");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/faqs`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return sanitizeUrls(json.data || []);
-  } catch (error) {
-    console.error("Error fetching FAQs:", error);
-    return [];
-  }
-}
-
-export async function fetchCalculatorSettings() {
-  const localData = getLocalDbData("calculator_settings");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/calculator`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return sanitizeUrls(json.data || null);
-  } catch (error) {
-    console.error("Error fetching calculator settings:", error);
-    return null;
-  }
-}
-
-export async function fetchCooperationSchemes() {
-  const localData = getLocalDbData("cooperation_schemes");
-  if (localData) {
-    return sanitizeUrls(localData);
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/schemes`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return sanitizeUrls(json.data || null);
-  } catch (error) {
-    console.error("Error fetching cooperation schemes:", error);
-    return null;
-  }
+/** Kirim lead ke Laravel (dipakai route handler /api/lead). */
+export async function postLead(body: unknown, visitor: { ip?: string | null; agent?: string | null }) {
+  const res = await fetch(BASE + '/leads', {
+    method: 'POST',
+    headers: {
+      'X-Api-Key': KEY, Accept: 'application/json', 'Content-Type': 'application/json',
+      ...(visitor.ip ? { 'X-Visitor-Ip': visitor.ip } : {}),
+      ...(visitor.agent ? { 'X-Visitor-Agent': visitor.agent.slice(0, 255) } : {}),
+    },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  return { status: res.status, json: await res.json().catch(() => ({ message: 'Gagal mengirim.' })) };
 }

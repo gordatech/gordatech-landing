@@ -1,53 +1,42 @@
-export const dynamic = "force-static";
+import type { MetadataRoute } from 'next';
+import { getInsights, getSitemap } from '@/lib/api';
+import { SITE_URL } from '@/lib/site';
 
-import { MetadataRoute } from "next";
-import { fetchServices, fetchPortfolios, fetchInsights } from "@/lib/api";
+export const revalidate = 3600;
 
+/** Semua URL publik dengan lastmod nyata dari database (bukan new Date()). */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const BASE_URL = "https://gordatech.com";
+  const s = await getSitemap();
+  const latest = (rows: { updated_at: string }[]) => rows.map((r) => r.updated_at).sort().at(-1);
+  const url = (path: string) => SITE_URL + path;
+  const staticPages: [string, number, string | undefined][] = [
+    ['/', 1, latest([...s.services, ...s.portfolios, ...s.insights])],
+    ['/layanan', 0.9, latest(s.services)],
+    ['/portfolio', 0.8, latest(s.portfolios)],
+    ['/insight', 0.8, latest(s.insights)],
+    ['/produk', 0.6, latest(s.products)],
+    ['/kerja-sama', 0.6, undefined],
+    ['/audit-gratis', 0.7, undefined],
+    ['/tentang', 0.5, undefined],
+    ['/kontak', 0.6, undefined],
+    ['/kebijakan-privasi', 0.2, undefined],
+    ['/syarat-ketentuan', 0.2, undefined],
+  ];
 
-  // Static URLs
-  const staticPaths = [
-    "",
-    "/layanan",
-    "/portfolio",
-    "/produk",
-    "/tentang",
-    "/kontak",
-    "/insight",
-  ].map((route) => ({
-    url: `${BASE_URL}${route}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: route === "" ? 1.0 : 0.8,
-  }));
+  let pages = 1;
+  try {
+    pages = (await getInsights('?per_page=12')).meta.last_page;
+  } catch { /* abaikan */ }
 
-  // Dynamic services anchors
-  const services = await fetchServices();
-  const servicePaths = services.map((srv: any) => ({
-    url: `${BASE_URL}/layanan#${srv.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
-
-  // Dynamic portfolios anchors
-  const portfolios = await fetchPortfolios();
-  const portfolioPaths = portfolios.map((port: any) => ({
-    url: `${BASE_URL}/portfolio#${port.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
-
-  // Dynamic insights paths
-  const insights = await fetchInsights();
-  const insightPaths = insights.map((ins: any) => ({
-    url: `${BASE_URL}/insight/${ins.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }));
-
-  return [...staticPaths, ...servicePaths, ...portfolioPaths, ...insightPaths];
+  return [
+    ...staticPages.map(([path, priority, lastModified]) => ({ url: url(path), priority, ...(lastModified ? { lastModified } : {}) })),
+    ...s.local_pages.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.9 })),
+    ...s.services.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.9 })),
+    ...s.portfolios.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.7 })),
+    ...s.products.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.6 })),
+    ...s.insights.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.7, ...(p.image ? { images: [p.image] } : {}) })),
+    ...s.insight_categories.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.5 })),
+    ...s.authors.map((p) => ({ url: url(p.path), lastModified: p.updated_at, priority: 0.3 })),
+    ...Array.from({ length: Math.max(0, pages - 1) }, (_, i) => ({ url: url(`/insight/halaman/${i + 2}`), priority: 0.3 })),
+  ];
 }

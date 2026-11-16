@@ -1,351 +1,151 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/* ----------------------------------------------------------------------------
+   TOKEN DESAIN GordaTech: minimalis editorial (Inter Tight + Inter), putih, aksen teal logo.
+   Sumber tunggal; dokumentasi: docs/DESIGN.md.
+   Kontras: teal logo #42b2bf hanya untuk blok berlatar dengan teks ink/navy (6,4:1) dan dekorasi (bintang, garis).
+   Teks/tautan teal kecil di latar putih memakai brand-600 #217783 (5,2:1).
+   ---------------------------------------------------------------------------- */
 @theme {
-  /* Brand Core — Logo Extracted & Rebranded */
-  --color-brand-teal:    #42b2bf;   /* Soft premium cyan-teal */
-  --color-brand-navy:    #323e7a;   /* Eye-friendly slate-navy */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-black: #000000;
 
-  /* Dark Backgrounds */
-  --color-bg-deepest:    var(--bg-deepest, #f4f5f8);
-  --color-bg-dark:       var(--bg-dark, #fafafc);
-  --color-bg-space:      var(--bg-space, #ffffff);
-  --color-bg-navy-card:  var(--bg-navy-card, #ffffff);
+  --color-brand-50: #eef8fa;
+  --color-brand-100: #d6eff2;
+  --color-brand-300: #8fd3dc;
+  --color-brand-500: #42b2bf; /* teal logo */
+  --color-brand-600: #217783; /* teal untuk teks di latar terang */
 
-  /* Electric Accents */
-  --color-electric:      #323e7a;   
-  --color-electric-deep: #323e7a;
+  --color-navy-500: #323e7a; /* navy logo */
+  --color-navy-700: #252e5c;
+  --color-night: #10172e;
 
-  /* Light Sections (Minimalist aesthetic variables) */
-  --color-light-canvas:  #f8fafc;
-  --color-light-mist:    #f1f5f9;
+  --color-ink: #161c33;
+  --color-ink-soft: #3d4560;
+  --color-ink-muted: #596179;
+  --color-line: #e3e7ec;
+  --color-paper: #f5f7f8;
 
-  /* Text & Contrast */
-  --color-text-white:    var(--text-white-val, #1c223d);
-  --color-text-muted:    var(--text-muted-val, rgba(28, 34, 61, 0.7));
-  --color-text-ghost:    var(--text-ghost-val, rgba(28, 34, 61, 0.08));
-  --color-text-dark:     #020617;
-  --color-text-dark-sub: rgba(2,6,23,0.6);
+  --color-wa: #1f9d55;
+  --color-red-700: #b91c1c;
+  --color-green-700: #15803d;
 
-  /* Typography */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Wordmark logo: Gotham Bold bila terpasang/berlisensi, selain itu Montserrat Bold (alternatif terdekat). */
+  --font-brand: "Gotham", var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Theme Variable Definitions ── */
-:root {
-  --bg-deepest: rgba(28, 34, 61, 0.03); /* Soft slate tint */
-  --bg-dark: transparent;               /* Show the body fixed gradient */
-  --bg-space: #ffffff;                  /* Pure white */
-  --bg-navy-card: #ffffff;              /* White card background */
-  --text-white-val: #1c223d;            /* Deep Slate Navy */
-  --text-muted-val: rgba(28, 34, 61, 0.7); /* Muted dark text */
-  --text-ghost-val: rgba(28, 34, 61, 0.08); /* Ghost border / line */
+@layer base {
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5.5rem; }
+  body { @apply bg-white font-sans text-[1rem] leading-[1.7] text-ink antialiased; }
+  h1, h2, h3, h4, .font-display { @apply font-display text-balance; font-weight: 600; letter-spacing: -0.035em; }
+  h1 { line-height: 0.98; }
+  h2 { line-height: 1.04; }
+  h3, h4 { line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
+  :focus-visible { outline: 2px solid var(--color-brand-600); outline-offset: 3px; border-radius: 4px; }
+  ::selection { background: var(--color-brand-100); color: var(--color-ink); }
+  summary { cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
 }
 
-html.light {
-  --bg-deepest: rgba(15, 23, 42, 0.04);
-  --bg-dark: transparent;
-  --bg-space: #ffffff;
-  --bg-navy-card: #ffffff;
-  --text-white-val: #0f172a;
-  --text-muted-val: rgba(15, 23, 42, 0.7);
-  --text-ghost-val: rgba(15, 23, 42, 0.1);
+@utility container-gt {
+  @apply mx-auto w-full max-w-[1240px] px-4 sm:px-8;
 }
 
-/* ── Global resets ── */
-* { box-sizing: border-box; }
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.92rem] font-semibold leading-tight transition-all duration-300 ease-out;
+}
+/* Tombol utama: navy logo, teks putih (9,6:1) */
+@utility btn-primary {
+  @apply btn bg-navy-700 text-white hover:bg-ink;
+}
+/* Tombol teal: latar teal logo, teks ink */
+@utility btn-teal {
+  @apply btn bg-brand-500 text-ink hover:bg-brand-300;
+}
+@utility btn-outline {
+  @apply btn border border-ink/15 bg-white text-ink hover:border-ink;
+}
+@utility btn-wa { @apply btn-primary; }
 
-h1, h2, h3, h4, h5, h6, .font-display {
-  font-family: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+@utility link {
+  @apply font-semibold text-brand-600 underline decoration-1 underline-offset-4 transition-colors hover:text-navy-500;
 }
 
-body {
-  background-color: #f4f5f7;
-  background-image: linear-gradient(135deg, #e6f3f5 0%, #f4f5f7 50%, #e7ecf5 100%);
-  background-attachment: fixed;
-  color: var(--text-white-val);
-  -webkit-font-smoothing: antialiased;
-  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+/* Label "[ Teks ]" di atas judul section */
+@utility tag {
+  @apply inline-block text-[0.75rem] font-medium uppercase leading-relaxed tracking-[0.18em] text-ink-soft;
+  &::before { content: '['; margin-right: 0.6em; @apply text-brand-600; }
+  &::after { content: ']'; margin-left: 0.6em; @apply text-brand-600; }
 }
 
-/* ── Rebranded Premium Utilities ── */
-@layer utilities {
-  /* Premium glassmorphic card style */
-  .premium-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(66, 178, 191, 0.12);
-    box-shadow: 0 10px 30px -10px rgba(50, 62, 122, 0.03);
-    border-radius: 1rem;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .premium-card:hover {
-    background: rgba(255, 255, 255, 1);
-    border-color: rgba(66, 178, 191, 0.35);
-    box-shadow: 0 20px 40px -15px rgba(66, 178, 191, 0.12);
-    transform: translateY(-4px);
-  }
-
-  /* Bento Grid Card Base — elevated "floating" 3D surface */
-  .gt-card {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-    border: 1px solid rgba(15, 23, 42, 0.055);
-    border-radius: 1.5rem;
-    transition: border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow:
-      0 1px 1px rgba(15, 23, 42, 0.03),
-      0 10px 22px -10px rgba(50, 62, 122, 0.10),
-      0 22px 44px -26px rgba(66, 178, 191, 0.18);
-    will-change: transform;
-  }
-  .gt-card:hover {
-    border-color: rgba(66, 178, 191, 0.32);
-    transform: translateY(-6px);
-    box-shadow:
-      0 1px 1px rgba(15, 23, 42, 0.03),
-      0 18px 30px -12px rgba(50, 62, 122, 0.14),
-      0 30px 56px -20px rgba(66, 178, 191, 0.30);
-  }
-
-  /* Icon badge with real embossed 3D depth — pair with inline background/--chip-glow per accent color */
-  .icon-chip {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -8px 12px -6px rgba(15, 23, 42, 0.10),
-      0 10px 18px -8px var(--chip-glow, rgba(66, 178, 191, 0.4));
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .group:hover .icon-chip {
-    transform: translateY(-3px) rotate(-4deg) scale(1.06);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      inset 0 -8px 12px -6px rgba(15, 23, 42, 0.12),
-      0 16px 26px -10px var(--chip-glow, rgba(66, 178, 191, 0.5));
-  }
-
-  /* Soft blurred gradient orb — decorative depth backdrop */
-  .mesh-blob {
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(70px);
-    pointer-events: none;
-  }
-
-  /* Elevated glass panel (light) */
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 30px 60px -20px rgba(50, 62, 122, 0.22);
-  }
-
-  /* Embossed 3D primary button */
-  .btn-3d {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.08),
-      0 10px 24px -8px rgba(50, 62, 122, 0.4),
-      0 4px 10px -4px rgba(66, 178, 191, 0.35);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .btn-3d:hover {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.08),
-      0 16px 32px -10px rgba(50, 62, 122, 0.48),
-      0 6px 16px -4px rgba(66, 178, 191, 0.45);
-  }
-  .btn-3d:active {
-    transform: translateY(1px) scale(0.99);
-  }
-
-  /* Section label */
-  .section-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #42b2bf;
-    margin-bottom: 16px;
-  }
-
-  /* Main rebranded gradient: Saturated Teal -> Violet-Indigo */
-  .gorda-gradient {
-    background: linear-gradient(135deg, #42b2bf 0%, #323e7a 100%);
-  }
-
-  /* Rebranded text gradient */
-  .gorda-gradient-text {
-    background: linear-gradient(135deg, #42b2bf 0%, #323e7a 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Glass surface standard */
-  .glass-dark {
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-  }
-
-  .glass-teal {
-    background: rgba(66, 178, 191, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(66, 178, 191, 0.15);
-    box-shadow: 0 10px 40px -10px rgba(66, 178, 191, 0.08);
-  }
-
-  /* Star/Dotted matrix background alignment */
-  .dot-grid {
-    background-image: radial-gradient(circle, rgba(50, 62, 122, 0.1) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-
-  /* ──────────────────────────────────────────────
-     BUTTON SWEEP SHINE — Premium reflective hover
-     ────────────────────────────────────────────── */
-  .sweep-shine {
-    position: relative;
-    overflow: hidden;
-  }
-  .sweep-shine::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 55%;
-    height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.22), transparent);
-    transform: skewX(-22deg);
-    transition: 0.65s;
-  }
-  .sweep-shine:hover::after {
-    left: 130%;
-  }
-
-  /* ──────────────────────────────────────────────
-     BUTTON PULSE GLOW — Teal breathing animation
-     ────────────────────────────────────────────── */
-  .pulse-glow {
-    animation: pulseGlow 2.5s infinite alternate;
-  }
-
-  /* Floating micro-badge — small elevated 3D chip used to decorate hero/visuals */
-  .float-chip {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(15, 23, 42, 0.06);
-    border-radius: 1rem;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 16px 34px -14px rgba(50, 62, 122, 0.28),
-      0 6px 14px -8px rgba(66, 178, 191, 0.25);
-  }
-
-  .perspective-1200 {
-    perspective: 1200px;
-  }
-
-  /* Button variant: outlined teal */
-  .btn-outline-teal {
-    background: rgba(66, 178, 191, 0.06);
-    border: 1.5px solid rgba(66, 178, 191, 0.35);
-    color: #42b2bf;
-    transition: all 0.25s ease;
-  }
-  .btn-outline-teal:hover {
-    background: rgba(66, 178, 191, 0.12);
-    border-color: #42b2bf;
-    color: #323e7a;
-    box-shadow: 0 4px 16px rgba(66, 178, 191, 0.18);
-    transform: translateY(-2px);
-  }
+/* Label di atas latar teal */
+@utility tag-ink {
+  color: var(--color-ink) !important;
+  &::before, &::after { color: var(--color-ink) !important; }
 }
 
-/* ──────────────────────────────────────────────
-   KEYFRAMES
-   ────────────────────────────────────────────── */
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 4px 15px rgba(66, 178, 191, 0.25), 0 2px 6px rgba(50, 62, 122, 0.12);
+@layer components {
+  .tag-dark { @apply tag text-white/70; }
+  .tag-dark::before, .tag-dark::after { @apply text-brand-500; }
+
+  /* Bingkai garis putus dengan bintang teal di keempat sudut (lihat komponen Frame). */
+  .frame { @apply relative border border-dashed border-ink/20; }
+  .frame-corner { @apply pointer-events-none absolute size-2 bg-brand-500; }
+
+  .card { @apply rounded-lg border border-line bg-white; }
+  .pill { @apply inline-flex items-center rounded-full px-3 py-1 text-[0.75rem] font-semibold uppercase tracking-[0.08em]; }
+  .num { @apply font-display text-sm font-medium tabular-nums text-brand-600; }
+
+  .input {
+    @apply block min-h-12 w-full rounded-md border border-line bg-white px-4 py-2.5 text-[0.95rem] text-ink placeholder:text-ink-muted/70
+      focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-500/20;
   }
-  100% {
-    box-shadow: 0 6px 30px rgba(66, 178, 191, 0.50), 0 4px 20px rgba(50, 62, 122, 0.22);
-  }
+  .label { @apply mb-1.5 block text-sm font-semibold text-ink; }
+
+  /* Isi artikel & halaman dari markdown admin */
+  .prose-gt { @apply max-w-[70ch] text-[1.03rem] leading-[1.85] text-ink-soft; }
+  .prose-gt :where(p, ul, ol, blockquote, .table-wrap) { @apply my-5; }
+  .prose-gt :where(h2) { @apply mt-12 mb-4 scroll-mt-28 text-[1.75rem] text-ink; }
+  .prose-gt :where(h3) { @apply mt-9 mb-3 scroll-mt-28 text-xl text-ink; }
+  .prose-gt :where(h4) { @apply mt-7 mb-2 text-lg text-ink; }
+  .prose-gt :where(ul) { @apply list-disc space-y-2 pl-6 marker:text-brand-500; }
+  .prose-gt :where(ol) { @apply list-decimal space-y-2 pl-6 marker:font-semibold marker:text-brand-600; }
+  .prose-gt :where(a) { @apply link; }
+  .prose-gt :where(strong) { @apply font-semibold text-ink; }
+  .prose-gt :where(blockquote) { @apply rounded-r-md border-l-4 border-brand-500 bg-brand-50 py-3 pl-5 pr-4; }
+  .prose-gt :where(hr) { @apply my-10 border-line; }
+  .prose-gt :where(code) { @apply rounded bg-paper px-1.5 py-0.5 text-[0.9em]; }
+  .prose-gt .table-wrap { @apply overflow-x-auto rounded-lg border border-line; }
+  .prose-gt :where(table) { @apply w-full min-w-[32rem] border-collapse text-left text-[0.95rem]; }
+  .prose-gt :where(th) { @apply bg-paper px-4 py-3 font-display font-semibold text-ink; }
+  .prose-gt :where(td) { @apply border-t border-line px-4 py-3 align-top; }
+  .prose-gt > :first-child { @apply mt-0; }
 }
 
-/* ── Scrollbars ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: rgba(66, 178, 191, 0.3); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #42b2bf; }
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none !important;
-}
-.no-scrollbar {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
-/* ── Custom Selections ── */
-::selection {
-  background: rgba(66, 178, 191, 0.25);
-  color: #1c223d;
+/* Kartu melayang di hero (dimatikan bila pengguna memilih kurangi gerakan) */
+@keyframes hero-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (min-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .hero-float { animation: hero-float 6s ease-in-out infinite; }
+  .hero-float-slow { animation: hero-float 7.5s ease-in-out 1.2s infinite; }
 }
 
-/* ── Lightbox Animation ── */
-@keyframes lightboxZoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-lightbox-zoom {
-  animation: lightboxZoomIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 65s linear infinite;
-}
-
-@keyframes floatSoft {
-  0%, 100% { transform: translateY(0) rotate(var(--float-rot, 0deg)); }
-  50% { transform: translateY(-14px) rotate(var(--float-rot, 0deg)); }
-}
-
-.animate-float {
-  animation: floatSoft 6s ease-in-out infinite;
-}
-
-@keyframes meshDrift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(3%, -4%) scale(1.06); }
-}
-
-.animate-mesh-drift {
-  animation: meshDrift 14s ease-in-out infinite;
-}
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 50s linear infinite; }
+.marquee-mask { mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation-duration: 160s !important; } }
