@@ -44,7 +44,12 @@ async function get<T>(path: string, tags: string[]): Promise<T> {
         lastError = new Error(`GordaTech API ${path} → HTTP ${res.status}`);
         continue;
       }
-      if (!res.ok) throw new Error(`GordaTech API ${path} → HTTP ${res.status}`);
+      if (!res.ok) {
+        // Sertakan pesan dari Laravel (mis. "API key tidak valid…") agar log build langsung menjelaskan penyebabnya.
+        const msg = await res.json().then((j: { message?: string }) => j.message).catch(() => undefined);
+        const hint = res.status === 401 ? (KEY ? ' (cek GORDATECH_API_KEY: key harus dibuat di admin panel produksi)' : ' (GORDATECH_API_KEY kosong)') : '';
+        throw new Error(`GordaTech API ${path} → HTTP ${res.status}${msg ? `: ${msg}` : ''}${hint}`);
+      }
       const json = (await res.json()) as T;
       lastGood.set(path, json);
       return json;
