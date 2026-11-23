@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { unstable_rethrow } from 'next/navigation';
 import { getInsights, getSitemap } from '@/lib/api';
 import { SITE_URL } from '@/lib/site';
 
@@ -26,7 +27,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let pages = 1;
   try {
     pages = (await getInsights('?per_page=12')).meta.last_page;
-  } catch { /* abaikan */ }
+  } catch (e) {
+    unstable_rethrow(e);
+  }
 
   return [
     ...staticPages.map(([path, priority, lastModified]) => ({ url: url(path), priority, ...(lastModified ? { lastModified } : {}) })),

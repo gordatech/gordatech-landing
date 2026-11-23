@@ -1,5 +1,5 @@
 import 'server-only';
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect, unstable_rethrow } from 'next/navigation';
 import { getRedirects } from './api';
 
 /**
@@ -14,8 +14,8 @@ export async function redirectOrNotFound(path: string): Promise<never> {
       permanentRedirect(hit.to);
     }
   } catch (e) {
-    // NEXT_REDIRECT harus diteruskan; error API lain → 404 biasa.
-    if (e && typeof e === 'object' && 'digest' in e && String((e as { digest: string }).digest).startsWith('NEXT_REDIRECT')) throw e;
+    // Redirect & sinyal render-dinamis dari Next harus diteruskan; error API lain → 404 biasa.
+    unstable_rethrow(e);
   }
   notFound();
 }

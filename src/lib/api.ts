@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import { connection } from 'next/server';
 import type {
   Category, Faq, Insight, LocalPage, Paginated, Portfolio, Product, Scheme, Service, SiteData, SitemapData, Testimonial, Author,
 } from './types';
@@ -56,6 +57,12 @@ async function get<T>(path: string, tags: string[]): Promise<T> {
   if (lastGood.has(path)) {
     console.warn(`[api] ${path} gagal, memakai data terakhir yang berhasil:`, lastError instanceof Error ? lastError.message : lastError);
     return lastGood.get(path) as T;
+  }
+  if (IS_BUILD) {
+    // API tidak terjangkau saat build: jangan gagalkan build. connection() menandai halaman ini dinamis,
+    // jadi Next melewati prerender dan halaman dirender saat pertama diakses (data tetap di-cache 1 jam).
+    console.warn(`[api] ${path} gagal saat build, halaman dirender saat diakses:`, lastError instanceof Error ? lastError.message : lastError);
+    await connection();
   }
   throw lastError instanceof Error ? lastError : new Error(`GordaTech API ${path} gagal`);
 }
